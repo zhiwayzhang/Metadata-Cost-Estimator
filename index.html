@@ -149,8 +149,8 @@
           <div class="row">
             <input id="capacityValue" type="number" inputmode="decimal" step="any" min="0" placeholder="例如 1 或 0.5" value="1" />
             <select id="capacityUnit" aria-label="容量单位">
-              <option value="GiB" selected>GiB</option>
-              <option value="TiB">TiB</option>
+              <option value="GiB">GiB</option>
+              <option value="TiB" selected>TiB</option>
             </select>
           </div>
           <div class="note">支持 GiB / TiB。</div>
@@ -173,11 +173,12 @@
           <div class="row">
             <input id="metaPerSectorValue" type="number" inputmode="decimal" step="any" min="0" placeholder="例如 64 或 4" value="4" />
             <select id="metaPerSectorUnit" aria-label="元数据单位">
+              <option value="Bytes" selected>Bytes</option>
               <option value="bits">bits</option>
-              <option value="KiB" selected>KiB</option>
+              <option value="KiB">KiB</option>
             </select>
           </div>
-          <div class="note">支持 KiB 或 bits（例如位图 1 bit/sector；输入 1）。</div>
+          <div class="note">支持 Bytes、bits 或 KiB（例如位图 1 bit/sector；输入 1）。</div>
         </div>
 
         <div class="field h6">
@@ -272,6 +273,15 @@
         }
       }
 
+      function toBytesMeta(value, unit){
+        switch(unit){
+          case 'Bytes': return value;
+          case 'bits': return value / 8;
+          case 'KiB': return value * KiB;
+          default: return NaN;
+        }
+      }
+
       function formatDecimal(x, decimals = 2){
         const s = (Math.round(x * Math.pow(10, decimals)) / Math.pow(10, decimals)).toFixed(decimals);
         return s.replace(/\.?0+$/, '');
@@ -313,6 +323,8 @@
         if (metaUnit === 'KiB'){
           const bytesPerSector = metaVal * KiB;
           totalBytes = sectors * bytesPerSector;
+        } else if (metaUnit === 'Bytes'){
+          totalBytes = sectors * metaVal;
         } else if (metaUnit === 'bits'){
           // 先总 bit，再整体向上取整到字节 (ceil(bits/8))
           const totalBits = sectors * metaVal;
